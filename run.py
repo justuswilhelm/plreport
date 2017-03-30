@@ -1,15 +1,16 @@
+#!/usr/bin/env python3
 """Extract expenses and invoices from freshbooks and print summary."""
 from csv import DictWriter
 from decimal import Decimal
-from os import getenv
+from os import environ
 from pathlib import Path
-from sys import stdout
+from argparse import ArgumentParser
+
+from dotenv import find_dotenv, load_dotenv
 
 from lxml import objectify
 from lxml.etree import XMLSyntaxError
 from refreshbooks import api
-
-YEAR = 2015
 
 
 def friendly_pdf_decoder(*args, **kwargs):
@@ -89,18 +90,28 @@ def retrieve_expenses(date_range, c, path="Ausgaben"):
             writer.writerow(line)
 
 
-def main():
+def main(**kwargs):
     """Go over nvoices and do stuff."""
-    date_range = {'date_from': '{}-01-01'.format(YEAR),
-                  'date_to': '{}-12-31'.format(YEAR)}
-    c = api.TokenClient(
-        getenv('FRESHBOOKS_DOMAIN'),
-        getenv('FRESHBOOKS_TOKEN'),
-        response_decoder=friendly_pdf_decoder,
-        user_agent='plreport')
+    year = kwargs.pop('year')
+    date_range = {'date_from': '{}-01-01'.format(year),
+                  'date_to': '{}-12-31'.format(year)}
+    try:
+        c = api.TokenClient(
+            environ['FRESHBOOKS_DOMAIN'],
+            environ['FRESHBOOKS_TOKEN'],
+            response_decoder=friendly_pdf_decoder,
+            user_agent='plreport')
+    except KeyError as e:
+        raise ValueError(
+            "FRESHBOOKS_DOMAIN and FRESHBOOKS_TOKEN must be supplied as "
+            "environment variables") from e
     retrieve_invoices(date_range, c)
     retrieve_expenses(date_range, c)
 
 
 if __name__ == "__main__":
-    main()
+    argparser = ArgumentParser()
+    argparser.add_argument('--year', type=int)
+    args = vars(argparser.parse_args())
+    load_dotenv(find_dotenv())
+    main(**args)

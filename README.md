@@ -1,15 +1,17 @@
-# PLREPORT
-Export all income and expense receipts.
+# PLREPORT for FreshBooks
 
-## Usage
-Configure `.env` with your
-- Freshbooks api token and
-- Freshbooks domain
+Using the FreshBooks API, export all income and expense receipts.
 
-Run
+## Quickstart
 
 ```
-./run.py
+python3 -m venv env/
+source env/bin/activate
+pip install -r requirements.txt
+cp .env.template .env
+# Add your API token and domain
+$EDITOR .env
+./run.py --year YEAR
 ```
 
 ## Requirements

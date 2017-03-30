@@ -1,2 +1,3 @@
 refreshbooks
 requests
+python-dotenv==0.6.1
